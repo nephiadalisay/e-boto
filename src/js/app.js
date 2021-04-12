@@ -3,6 +3,8 @@ App = {
   contracts: {},
   account: '0x0',
   hasVoted: false,
+  isRegistered: false,
+  role: 0,
 
   init: function() {
     return App.initWeb3();
@@ -32,7 +34,7 @@ App = {
 
       App.listenForEvents();
 
-      return App.renderme();
+      return App.renderme0();
     });
   },
 
@@ -48,32 +50,265 @@ App = {
       }).watch(function(error, event) {
         console.log("event triggered", event)
         // Reload when a new vote is recorded
-        App.renderme();
+        App.renderme0();
       });
     });
   },
 
-  renderme: function() {
+  renderme0: function() {
     var divs = document.getElementsByClassName('this');
-    for(var i = 0; i < divs.length; i++) {
-      divs[i].style.display = "none";
+      for(var i = 0; i < divs.length; i++) {
+        divs[i].style.display = "none";
+      }
+      var startbtn = $('#startbtn');
+      startbtn.show();
+
+    if(window.ethereum){
+      ethereum.enable().then(function(acc){
+          App.account = acc[0];
+          // $("#accountAddress").html("Your Account: " + App.account);
+          // var accountAddress = $('#accountAddress');
+          // accountAddress.show();
+      }).then(function(i){
+        $("#accountAddress").html("Your Account: " + App.account);
+      });
+    }
+    
+
+  },
+
+  renderme: function() {
+    // $("#myrole").html("Your Role: " + App.role);
+
+    if(window.ethereum){
+      ethereum.enable().then(function(acc){
+          App.account = acc[0];
+          $("#myrole").html("Your Role: " + App.role);
+          $("#accountAddress").html("Your Account: " + App.account);
+          // var accountAddress = $('#accountAddress');
+          // accountAddress.show();
+      });
     }
 
-    var start_div = $("#start_div");
-    start_div.show();
+
+    
+    
+////////////////////////////
+    App.contracts.Election.deployed().then(function(instance) {
+      electionInstance = instance;
+      return electionInstance.personsCount();
+    }).then(function(personsCount) {
+      var candidatesResults = $("#candidatesResults1");
+      candidatesResults.empty();
+
+      var candidatesSelect = $('#candidatesSelect1');
+      candidatesSelect.empty();
+
+      // For displaying candidates
+      for (var i = 0; i <= personsCount; i++) {
+        electionInstance.persons(i).then(function(person) {
+          var id = person[0];
+          var addr = person[1];
+          var role = person[2];
+
+          // Render candidate Result
+          var candidateTemplate = "<tr><th>" + id + "</th><td>" + addr + "</td><td>" + role + "</td></tr>"
+          candidatesResults.append(candidateTemplate);
+
+        });
+      }
+    });
+///////////////////////////
+
+    if(App.role == 0){
+      var divs = document.getElementsByClassName('this');
+      for(var i = 0; i < divs.length; i++) {
+        divs[i].style.display = "none";
+      }
+
+      var start_div = $("#start_div");
+      start_div.show();
+    }
+    else if (App.role == 1) {
+      App.render();
+    }
+    else if (App.role == 2){
+      App.reg_elecauth();
+    }
+    
     
   },
 
 
-  create_election: function(){
+  reg_elecauth: function(){
     var divs = document.getElementsByClassName('this');
     for(var i = 0; i < divs.length; i++) {
       divs[i].style.display = "none";
     }
 
-    var create_election_div = $("#create_election_div");
-    create_election_div.show();
+    
+    // if(window.ethereum){
+    //   ethereum.enable().then(function(acc){
+    //       App.account = acc[0];
+    //       // $("#accountAddress").html("Your Account: " + App.account);
+    //       // var accountAddress = $('#accountAddress');
+    //       // accountAddress.show();
+    //   });
+    // }
+  
+    // App.role = 2;
+
+    // App.contracts.Election.deployed().then(function(instance) {
+    //   // $("#accountAddress").html("Your !!!Account: " + App.role);
+    //   if(!instance.isRegistered(App.account)){
+    //     App.role = 2;
+    //     return instance.register(App.account, App.role, { from: App.account });
+    //   }
+    //   else if(instance.isRegistered(App.account)){
+    //     x = instance.isRegistered(App.account);
+    //     App.isRegistered = true;
+    //     $("#myrole").html("Your !!!Account: " + App.account);
+    //     var already_reg = $("#already_reg");
+    //     already_reg.show();
+    //   }
+    // }).then(function(result){
+    //   if(!App.isRegistered){
+    //     var elecauth_div = $("#elecauth_div");
+    //     $("#myrole").html("Your Role: " + App.role);
+    //     elecauth_div.show();
+    //   }
+      
+    // }).catch(function(err) {
+    //   console.error(err);
+    // });
+    
+    App.contracts.Election.deployed().then(function(instance) {
+      return instance.isRegistered(App.account);
+    }).then(function(regged){
+      if(!regged){
+        App.role = 2;
+        App.contracts.Election.deployed().then(function(instance2) {
+          return instance2.register(App.account, App.role, { from: App.account });
+        }).then(function(result){
+          var elecauth_div = $("#elecauth_div");
+          $("#myrole").html("Your Role: " + App.role);
+          elecauth_div.show();
+        })
+      }
+      else{
+        App.isRegistered = true;
+        $("#myrole").html("Your Account: " + App.account);
+        var already_reg = $("#already_reg");
+        already_reg.show();
+        // var voter_btn2 = $("#voter_btn2");
+        // voter_btn2.show();
+        
+      }
+    }).catch(function(err) {
+      console.error(err);
+    });
+
+    
   },
+
+
+
+  reg_voter: function() {
+    var divs = document.getElementsByClassName('this');
+    for(var i = 0; i < divs.length; i++) {
+      divs[i].style.display = "none";
+    }
+
+    // App.role = 1;
+
+    // App.contracts.Election.deployed().then(function(instance) {
+    //   if(!instance.isRegistered(App.account)){
+    //     App.role = 1;
+    //     return instance.register(App.account, App.role, { from: App.account });
+    //   }
+    //   else{
+    //     App.isRegistered = true;
+    //     var already_reg = $("#already_reg");
+    //     already_reg.show();
+    //   }
+    // }).then(function(result){
+    //   if(!App.isRegistered){
+    //     App.render();
+    //   }
+    // }).catch(function(err) {
+    //   console.error(err);
+    // });
+
+    App.contracts.Election.deployed().then(function(instance) {
+      return instance.isRegistered(App.account);
+    }).then(function(regged){
+      if(!regged){
+        // var already_reg = $("#already_reg");
+        // already_reg.show();
+        App.role = 1;
+        App.contracts.Election.deployed().then(function(instance2) {
+          return instance2.register(App.account, App.role, { from: App.account });
+        }).then(function(result){
+          App.render();
+        })
+      }
+      else{
+        App.isRegistered = true;
+        $("#myrole").html("Your Account: " + App.account);
+        var already_reg = $("#already_reg");
+        already_reg.show();
+      }
+    }).catch(function(err) {
+      console.error(err);
+    });
+
+  },
+
+  sign_in:function() {
+    var divs = document.getElementsByClassName('this');
+    for(var i = 0; i < divs.length; i++) {
+      divs[i].style.display = "none";
+    }
+
+    // getting role of account
+    App.contracts.Election.deployed().then(function(instance) {
+      return instance.persons2(App.account).then(function(acc_uint){
+        // App.role = instance.persons(acc_uint).role;
+        App.role = acc_uint;
+      })
+    }).then(function(result){
+      if(App.role == 1){
+        var role_words1 = $("#role_words1");
+        role_words1.show();
+        App.render();
+      }
+      else if (App.role == 2) {
+        var elecauth_div = $("#elecauth_div");
+        $("#myrole").html("Your Role: " + App.role);
+        var role_words2 = $("#role_words2");
+        role_words2.show();
+        elecauth_div.show();
+      }
+      else{
+        var no_acct = $("#no_acct");
+        no_acct.show();
+      }
+      
+    }).catch(function(err) {
+      console.error(err);
+    });
+
+    // App.contracts.Election.deployed().then(function(instance) {
+    //   return instance.sign_in(App.account, { from: App.account });
+    // }).then(function(result){
+    //   // $("#loader").show();
+    //   App.render();
+    // }).catch(function(err) {
+    //   console.error(err);
+    // });
+
+  },
+
 
   custom_election: function(){
     var divs = document.getElementsByClassName('this');
@@ -86,7 +321,17 @@ App = {
     var custom_election_div = $("#custom_election_div");
     
     custom_election_div.show();
+
+    //////////////////////////////////////
+    App.contracts.Election.deployed().then(function(instance) {
+      instance.addElection(myid);
+    });
+    //////////////////////////////////
+
+
   },
+
+
 
   auth_homepage: function(){
     var divs = document.getElementsByClassName('this');
@@ -111,52 +356,53 @@ App = {
     add_can_div.show();
     addcanbtn.show();
 
-    if(window.ethereum){
-      ethereum.enable().then(function(acc){
-          App.account = acc[0];
-          $("#accountAddress").html("Your Account: " + App.account);
-      });
-    }
+    // if(window.ethereum){
+    //   ethereum.enable().then(function(acc){
+    //       App.account = acc[0];
+    //       $("#accountAddress").html("Your Account: " + App.account);
+    //   });
+    // }
     // loader.hide();
     // content.show();
 
     // Load contract data
-    App.contracts.Election.deployed().then(function(instance) {
-      electionInstance = instance;
-      return electionInstance.candidatesCount();
-    }).then(function(candidatesCount) {
-      var candidatesResults = $("#candidatesResults");
-      candidatesResults.empty();
+    /////////////
+    // App.contracts.Election.deployed().then(function(instance) {
+    //   electionInstance = instance;
+    //   return electionInstance.candidatesCount();
+    // }).then(function(candidatesCount) {
+    //   var candidatesResults = $("#candidatesResults");
+    //   candidatesResults.empty();
 
-      var candidatesSelect = $('#candidatesSelect');
-      candidatesSelect.empty();
+    //   var candidatesSelect = $('#candidatesSelect');
+    //   candidatesSelect.empty();
 
-      for (var i = 1; i <= candidatesCount; i++) {
-        electionInstance.candidates(i).then(function(candidate) {
-          var id = candidate[0];
-          var name = candidate[1];
-          var voteCount = candidate[2];
+    //   for (var i = 1; i <= candidatesCount; i++) {
+    //     electionInstance.candidates(i).then(function(candidate) {
+    //       var id = candidate[0];
+    //       var name = candidate[1];
+    //       var voteCount = candidate[2];
 
-          // Render candidate Result
-          var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
-          candidatesResults.append(candidateTemplate);
+    //       // Render candidate Result
+    //       var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+    //       candidatesResults.append(candidateTemplate);
 
-          // Render candidate ballot option
-          var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
-          candidatesSelect.append(candidateOption);
-        });
-      }
-      return electionInstance.voters(App.account);
-    }).then(function(hasVoted) {
-      // Do not allow a user to vote
-      if(hasVoted) {
-        $('form').hide();
-      }
-      loader.hide();
-      content.show();
-    }).catch(function(error) {
-      console.warn(error);
-    });
+    //       // Render candidate ballot option
+    //       var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
+    //       candidatesSelect.append(candidateOption);
+    //     });
+    //   }
+    //   return electionInstance.voters(App.account);
+    // }).then(function(hasVoted) {
+    //   // Do not allow a user to vote
+    //   if(hasVoted) {
+    //     $('form').hide();
+    //   }
+    //   loader.hide();
+    //   content.show();
+    // }).catch(function(error) {
+    //   console.warn(error);
+    // });
 
   },
 
@@ -225,10 +471,14 @@ App = {
   },
 
   render: function() {
-    var divs = document.getElementsByClassName('this');
-    for(var i = 0; i < divs.length; i++) {
-      divs[i].style.display = "none";
-    }
+    $("#myrole").html("Your Role: " + App.role);
+    // var role_words1 = $("#role_words1");
+    // role_words1.show();
+    
+    // var divs = document.getElementsByClassName('this');
+    // for(var i = 0; i < divs.length; i++) {
+    //   divs[i].style.display = "none";
+    // }
     var electionInstance;
     var loader = $("#loader");
     var content = $("#content");
@@ -267,12 +517,17 @@ App = {
       var candidatesSelect = $('#candidatesSelect');
       candidatesSelect.empty();
 
+      // For displaying candidates
       for (var i = 1; i <= candidatesCount; i++) {
         electionInstance.candidates(i).then(function(candidate) {
           var id = candidate[0];
           var name = candidate[1];
           var voteCount = candidate[2];
 
+          // if (App.role == 0 || App.role == 2){
+          //   var candidatesSelect = $("#forvoteronly");
+          //   candidatesSelect.hide();
+          // }
           // Render candidate Result
           var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
           candidatesResults.append(candidateTemplate);
@@ -285,7 +540,7 @@ App = {
       return electionInstance.voters(App.account);
     }).then(function(hasVoted) {
       // Do not allow a user to vote
-      if(hasVoted) {
+      if(hasVoted||App.role==0||App.role==2) {
         $('form').hide();
       }
       loader.hide();
@@ -325,8 +580,42 @@ App = {
       return instance.addCandidate(some_name, { from: App.account });
     }).then(function(result) {
       // Wait for candidates to update
-      $("#content").hide();
-      $("#loader").show();    
+
+      // $("#content").hide();
+      // $("#loader").show();    
+      App.render();
+
+      ///////////////////////////////
+      // App.contracts.Election.deployed().then(function(instance) {
+      //   electionInstance = instance;
+      //   return electionInstance.candidatesCount();
+      // }).then(function(candidatesCount) {
+      //   var candidatesResults = $("#candidatesResults");
+      //   candidatesResults.empty();
+  
+      //   // var candidatesSelect = $('#candidatesSelect');
+      //   // candidatesSelect.empty();
+  
+      //   // For displaying candidates
+      //   for (var i = 1; i <= candidatesCount; i++) {
+      //     electionInstance.candidates(i).then(function(candidate) {
+      //       var id = candidate[0];
+      //       var name = candidate[1];
+      //       var voteCount = candidate[2];
+  
+      //       // Render candidate Result
+      //       var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+      //       candidatesResults.append(candidateTemplate);
+  
+      //       // // Render candidate ballot option
+      //       // var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
+      //       // candidatesSelect.append(candidateOption);
+      //     });
+      //   }
+      //   return electionInstance.voters(App.account);
+      // });
+      ///////////////////////////////
+
       //$("#addcanbtn").hide();
     }).catch(function(err) {
       console.error(err);

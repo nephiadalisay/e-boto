@@ -25,15 +25,27 @@
           <hr/>
           <br/>
 
+          <p id="myrole" class="text-center"></p>
+          <p id="test1" class="text-center"></p>
+
+          <center><button class="this" type="submit" id="startbtn" onclick="App.renderme()">Enter</button></center>
+
           <div class="this" id = "start_div">
           <center>
+
+            
+
+            <br>
             <p class="text-center">I am a/an...</p>
-            <button type="button" id="voter_btn" onclick="App.render()">Voter</button>
-            <button type="button"id="ea_btn" onclick="App.create_election()">Election Authority</button>
+            <button type="submit" id="voter_btn" onclick="App.reg_voter()">Register as Voter</button>
+            <button type="submit"id="ea_btn" onclick="App.reg_elecauth()">Register as Election Authority</button>
+            <br><br>or<br>
+            <button type="submit" id="voter_btn2" onclick="App.sign_in()">Sign in </button>
+           
           </center>
           </div>
           
-          <div class="this" id = "create_election_div">
+          <div class="this" id = "elecauth_div">
           <center>
             <button type="button" id="create_elect" onclick="App.custom_election()">Create Election</button>
           </center>
@@ -50,9 +62,10 @@
 
           <div class="this" id = "auth_homepage_div">
           <center>
-            <button type="button" id="create_elect" onclick="App.add_can()">Add Candidates</button><br>
-            <button type="button" id="create_elect" onclick="App.edit_pxn()">Edit Positions</button><br>
-            <button type="button" id="create_elect" onclick="App.render1()">Election Duration</button><br>
+            <br>
+            <button type="button" id="create_elect" onclick="App.add_can()">Add Candidates</button><br><br>
+            <button type="button" id="create_elect" onclick="App.edit_pxn()">Edit Positions</button><br><br>
+            <button type="button" id="create_elect" onclick="App.render1()">Election Duration</button><br><br>
             <button type="button" id="create_elect" onclick="App.render1()">Edit Voters</button>
           </center>
           </div>
@@ -70,6 +83,21 @@
 
           <div class="this" id="loader">
             <p class="text-center">Loading...!!</p>
+          </div>
+
+          <div class="this" id="no_acct">
+            <p class="text-center">You are not registered.</p>
+          </div>
+
+          <div class="this" id="already_reg">
+            <p class="text-center">Your account is already connected to an e-Halal account. Please sign in to continue.</p>
+          </div>
+
+          <div class="this" id="role_words1">
+            <p class="text-center">Your e-Halal account is a <b>Voter Account.</b></p>
+          </div>
+          <div class="this" id="role_words2">
+            <p class="text-center">Your e-Halal account is an <b>Election Authority Account.</b></p>
           </div>
 
           <div class="this" id="add_can_div">
@@ -96,7 +124,7 @@
             <hr/>
 
 
-            <form onSubmit="App.castVote(); return false;">
+            <form id=forvoteronly; onSubmit="App.castVote(); return false;">
               <div class="form-group">
                 <label for="candidatesSelect">Select Candidate</label>
                 <select class="form-control" id="candidatesSelect">
@@ -109,8 +137,26 @@
             ...................
 
             <br><br>
-            <p id="accountAddress" class="text-center"></p>
+            <p id="accountAddress" class="text-center">aaa</p>
           </div>
+
+          <br><br><br><br><br>
+          Accounts
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Addr</th>
+                <th scope="col">Role</th>
+              </tr>
+            </thead>
+            <tbody id="candidatesResults1">
+            </tbody>
+          </table>
+
+
+
+          <center><center>
         </div>
       </div>
     </div>
