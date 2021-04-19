@@ -26,6 +26,7 @@
           <br/>
 
           <p id="myrole" class="text-center"></p>
+          <p id="myrole2" class="text-center"></p>
           <p id="test1" class="text-center"></p>
 
           <center><button class="this" type="submit" id="startbtn" onclick="App.renderme()">Enter</button></center>
@@ -66,7 +67,7 @@
             <button type="button" id="create_elect" onclick="App.add_can()">Add Candidates</button><br><br>
             <button type="button" id="create_elect" onclick="App.edit_pxn()">Edit Positions</button><br><br>
             <button type="button" id="create_elect" onclick="App.render1()">Election Duration</button><br><br>
-            <button type="button" id="create_elect" onclick="App.render1()">Edit Voters</button>
+            <button type="button" id="create_elect" onclick="App.ed_vote()">Edit Voters</button>
           </center>
           </div>
 
@@ -93,6 +94,10 @@
             <p class="text-center">Your account is already connected to an e-Halal account. Please sign in to continue.</p>
           </div>
 
+          <div class="this" id="already_voter">
+            <p class="text-center">This account is already in the voter database.</p>
+          </div>
+
           <div class="this" id="role_words1">
             <p class="text-center">Your e-Halal account is a <b>Voter Account.</b></p>
           </div>
@@ -106,6 +111,16 @@
                 <input type="text" id="candidateName">
               </div>
               <button type="submit" id="addcanbtn" class="this btn btn-primary" >Add Candidate</button>
+            </form>
+          </div>
+
+          <div class="this" id="ed_vote_div">
+            <form onSubmit="App.edit_voters(); return false;" > 
+              <div class="form-group">
+                <input type="text" id="voter_eth_wallet" placeholder = "ETH Wallet Number"> 
+                <input type="text" id="voter_email" placeholder = "Email Address">
+              </div>
+              <button type="submit" id="ed_vote_btn" class="this btn btn-primary" >Add Voter</button>
             </form>
           </div>
           

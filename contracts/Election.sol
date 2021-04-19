@@ -30,7 +30,7 @@ contract Election {
 
     // Store all people
         mapping (uint => Person) public persons;
-        mapping (string => uint) public persons2;
+        mapping (string => uint) public persons2; // address => role_num 
 
     // Store all election instances
         mapping (uint => Election_Instance) public election_instances;
@@ -71,14 +71,30 @@ contract Election {
         election_instances[electionInstancesCount] = Election_Instance(_code, false);
     }
 
-    function register(string memory _addr, uint _role) public {
+    function register(string memory _addr, uint _role) public {        
+        address myAddress_addr = parseAddr(_addr);
         // require that they haven't registered before
-        require(!isRegistered[msg.sender]);
-        isRegistered[msg.sender] = true;
+        require(!isRegistered[myAddress_addr]);
+        isRegistered[myAddress_addr] = true;
         personsCount ++;
         persons[personsCount] = Person(personsCount, _addr, _role);
         persons2[_addr] = _role;
     }
+
+    function addVoter(string memory _addr2, uint _role2) public {        
+        address myAddress_addr = parseAddr(_addr2);
+        // string myAddress_str = _addr;
+        
+        require(!isRegistered[myAddress_addr]);
+        isRegistered[myAddress_addr] = true;
+        personsCount ++;
+        persons[personsCount] = Person(personsCount, _addr2, _role2);
+        persons2[_addr2] = _role2;
+    }
+
+    // function addDB(string memory _addr3, uint _role3) public {
+    //     persons2[_addr3] = _role3;
+    // }
 
     // function sign_in (string memory _addr) public {
     //     require(!persons2[_addr]);
@@ -98,4 +114,33 @@ contract Election {
         candidates[_candidateId].voteCount ++;
 
     }
+
+    function parseAddr(string memory _a) public returns (address _parsedAddress) {
+        bytes memory tmp = bytes(_a);
+        uint160 iaddr = 0;
+        uint160 b1;
+        uint160 b2;
+        for (uint i = 2; i < 2 + 2 * 20; i += 2) {
+            iaddr *= 256;
+            b1 = uint160(uint8(tmp[i]));
+            b2 = uint160(uint8(tmp[i + 1]));
+            if ((b1 >= 97) && (b1 <= 102)) {
+                b1 -= 87;
+            } else if ((b1 >= 65) && (b1 <= 70)) {
+                b1 -= 55;
+            } else if ((b1 >= 48) && (b1 <= 57)) {
+                b1 -= 48;
+            }
+            if ((b2 >= 97) && (b2 <= 102)) {
+                b2 -= 87;
+            } else if ((b2 >= 65) && (b2 <= 70)) {
+                b2 -= 55;
+            } else if ((b2 >= 48) && (b2 <= 57)) {
+                b2 -= 48;
+            }
+            iaddr += (b1 * 16 + b2);
+        }
+        return address(iaddr);
+}
+
 }
