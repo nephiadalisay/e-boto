@@ -42,12 +42,17 @@ contract Election {
 
     mapping(address => bool) public isRegistered;
 
+    mapping(uint => address) public myVotes; // new vote storage !!!!!!!!!!!!!!!!!!!!!!!!!
+    mapping (address => string) public myVotes2; // !!!!!!!!!!!!!!!!!!!!!!!!!
+
     // Store Candidate
     // Fetch Candidate
-        mapping(uint => Candidate) public candidates; // mapping(_KeyType => _ValueType) public mappingName
+    mapping(uint => Candidate) public candidates; // mapping(_KeyType => _ValueType) public mappingName
 
     // Store Candidates Count
         uint public candidatesCount; //used to keep track of how many candidates there are (iterating not possible in Solidity)
+
+        uint public allVotesCount; // storing number of all votes !!!!!!!!!!!!!!!!!!!!
 
     // Election Instances Count
         uint public electionInstancesCount;
@@ -101,7 +106,7 @@ contract Election {
     //     person_uint = persons2[_addr];
     // }
 
-    function vote(uint _candidateId) public {
+    function vote(uint _candidateId, string memory _votersvote) public {
         // require that they haven't voted before
         require(!voters[msg.sender]);
         // require a valid candidate
@@ -110,10 +115,18 @@ contract Election {
         // record that voter has voted
         voters[msg.sender] = true; // msg.sender is x in 'from:x'
 
+        allVotesCount++; //!!!!!!!!!!!!!!!!!!!!!!
+        myVotes[allVotesCount] = msg.sender; // storing vote in mapping !!!!!!!!!!!!!!!!!!!!!
+        myVotes2[msg.sender] = _votersvote;
+
         // update candidate vote count
         candidates[_candidateId].voteCount ++;
 
     }
+
+    // function merge(string memory s1, string memory s2) public returns (string _votersvote){
+
+    // }
 
     function parseAddr(string memory _a) public returns (address _parsedAddress) {
         bytes memory tmp = bytes(_a);

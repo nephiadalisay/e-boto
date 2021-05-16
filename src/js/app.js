@@ -1,3 +1,8 @@
+// import * as ecc from '/ecc.js';
+// import {main,decrypt, encrypt, power,gen_key, gcd, getRandomInt} from './ecc.js';
+// import ecc from "./ecc.js";
+// const ecc = require("./ecc.js");
+
 App = {
   web3Provider: null,
   contracts: {},
@@ -6,8 +11,10 @@ App = {
   isRegistered: false,
   role: 0,
   current_addr: '',
+  ballot_key,
 
   init: function() {
+    // const ecc = require("./ecc.js");
     return App.initWeb3();
   },
 
@@ -102,30 +109,54 @@ App = {
     
     
 ////////////////////////////
-    App.contracts.Election.deployed().then(function(instance) {
-      electionInstance = instance;
-      return electionInstance.personsCount();
-    }).then(function(personsCount) {
-      var candidatesResults = $("#candidatesResults1");
-      candidatesResults.empty();
+App.contracts.Election.deployed().then(function(instance) {
+  electionInstance = instance;
+  return electionInstance.personsCount();
+}).then(function(personsCount) {
+  var candidatesResults = $("#candidatesResults1");
+  candidatesResults.empty();
 
-      var candidatesSelect = $('#candidatesSelect1');
-      candidatesSelect.empty();
+  var candidatesSelect = $('#candidatesSelect1');
+  candidatesSelect.empty();
 
-      // For displaying candidates
-      for (var i = 0; i <= personsCount; i++) {
-        electionInstance.persons(i).then(function(person) {
-          var id = person[0];
-          var addr = person[1];
-          var role = person[2];
+  // For displaying candidates
+  for (var i = 0; i <= personsCount; i++) {
+    electionInstance.persons(i).then(function(person) {
+      var id = person[0];
+      var addr = person[1];
+      var role = person[2];
 
-          // Render candidate Result
-          var candidateTemplate = "<tr><th>" + id + "</th><td>" + addr + "</td><td>" + role + "</td></tr>"
-          candidatesResults.append(candidateTemplate);
+      // Render candidate Result
+      var candidateTemplate = "<tr><th>" + id + "</th><td>" + addr + "</td><td>" + role + "</td></tr>"
+      candidatesResults.append(candidateTemplate);
 
-        });
-      }
     });
+  }
+});
+///////////////////////////
+////////////////////////////
+App.contracts.Election.deployed().then(function(instance1) {
+  electionInstance1 = instance1;
+  return electionInstance1.allVotesCount();
+}).then(function(votescount) {
+  var candidatesResults = $("#candidatesResults2");
+  candidatesResults.empty();
+
+
+  // For displaying candidates
+  for (var i = 1; i <= votescount; i++) {
+    electionInstance1.myVotes(i).then(function(addr) {
+      App.contracts.Election.deployed().then(function(instance3){
+        return instance3.myVotes2(addr);
+      }).then(function(vowt){
+          // Render candidate Result
+        var candidateTemplate = "<tr><th>" + addr + "</th><td>" + vowt + "</td><td>" 
+        candidatesResults.append(candidateTemplate);
+      })
+
+    });
+  }
+});
 ///////////////////////////
 
     if(App.role == 0){
@@ -688,16 +719,188 @@ App = {
     }).catch(function(error) {
       console.warn(error);
     });
+
   },
 
+
   castVote: function() {
-    var candidateId = $('#candidatesSelect').val();
+
+    ////////////////////////////////SPECIAL FX PART//////////////////////////////////
+    function merge(s1,s2) {
+      result = '';
+    
+      i = 0;
+    
+      while ((i<s1.length) || (i<s2.length)){
+          if (i<s1.length){
+              result = result + s1[i];
+          }
+    
+          if (i<s2.length){
+              result = result + s2[i];
+          }
+    
+          i = i+1;
+      }
+    
+      return result;
+    }
+    ////////////////////////////////SPECIAL FX PART//////////////////////////////////
+
+    ///////////////////////////////////////////////////// ECC PART ////////////////////////////////////
+  function getRandomInt (min, max) {
+    var min1 = Math.ceil(min);
+    var max1 = Math.floor(max);
+    return Math.floor(Math.random() * (max1 - min1) + min1); //The maximum is exclusive and the minimum is inclusive
+  }
+  
+  function gcd(a, b){
+  	if (a < b) {
+          return gcd(b, a)
+      }
+  	else if ((a % b) == 0) {
+          return b;
+      }
+          
+  	else {
+          return gcd(b, a % b)
+      }	
+  }
+  
+  function gen_key(q){
+  	var key = getRandomInt(Math.pow(10,0), q);
+  	while (gcd(q, key) != 1){
+          key = getRandomInt(Math.pow(10,0),q);
+          // console.log(key);
+      }
+  	return key;
+  }
+  
+  function power(a, b, c){
+    var x = 1
+    var y = a
+  
+    while (b > 0){
+          if ((b % 2) == 0){
+              x = (x * y) % c;
+          }	
+      var y = (y * y) % c;
+      var b = parseInt(b / 2);
+      }
+  
+    return x % c;
+  }
+  
+  function encrypt(msg, q, h, g){
+  	var en_msg = [];
+  
+  	var k = gen_key(q); // Private key for sender
+  	var s = power(h, k, q);
+  	var p = power(g, k, q);
+      
+      for(i=0; i<msg.length;i++){
+          en_msg = en_msg.concat(msg[i]);
+      }
+  
+  	// print("g^k used : ", p)
+  	// print("g^ak used : ", s)
+  
+      for(i=0; i<msg.length;i++){
+      	// console.log(en_msg[i]);
+          en_msg[i] = s * (en_msg[i].charCodeAt(0));
+      }
+  
+  	return [en_msg, p];
+  }
+  
+  function decrypt(en_msg, p, key, q){
+  	var dr_msg = [];
+  	var h = power(p, key, q);
+  
+      for(i=0; i<en_msg.length;i++){
+      	console.log("DR MSG IS", dr_msg);
+  
+          dr_msg = dr_msg.concat(String.fromCharCode(parseInt((en_msg[i]/h) )));
+      }
+  
+  
+  	return dr_msg;
+  }
+  
+  function ecc_main(msg){
+    // var msg = "nephia";
+    // print("Original Message :", msg)
+    console.log("Original Message :", msg);
+  
+    var q = getRandomInt(Math.pow(10,0), Math.pow(10,5));	// very large number
+  // console.log("hi1", q);
+    var g = getRandomInt(2,q);
+    // console.log("hi2");
+  
+    var key = gen_key(q) // Private key for receiver
+    // console.log("hi3");
+    var h = power(g, key, q)
+    // console.log("hi4");
+    // print("g used : ", g)
+    console.log("g used : ", g);
+    // print("g^a used : ", h)
+    console.log("g^a used : ", h);
+  
+    var full_en_msg = encrypt(msg, q, h, g);
+    var en_msg = full_en_msg[0];
+    console.log("en_msg : ", en_msg);
+    var p = full_en_msg[1];
+    // console.log("p : ", p);
+    // console.log("key : ", key);
+    // console.log("q : ", q);
+    // var dr_msg = decrypt(en_msg, p, key, q);
+    // var dmsg = dr_msg.join('');
+
+    // console.log("Decrypted Message :", dmsg);
+    return en_msg;
+    
+  }  
+  ///////////////////////////////////////////////////// ECC PART^ //////////////////////////////////// 
+
+    var candidateId = $('#candidatesSelect').val(); // getting the vote value
+
+    // candidateId_spoof = parseInt(candidateId) + 56789; // turning vote into larger number so we can encrypt better
+
+    // encryption of vote,, this is what should be stored in mapping 'voter_id => encrypted_vote'
+    encrypted_vote = String(ecc_main(String(candidateId))); 
+
+    // merging ETH wallet with encrypted vote,,, this is the ballot key
+    ballot_key = merge(String(App.account).substring(0,10), String(encrypted_vote)).replaceAll(',',''); 
+    App.ballot_key = ballot_key;
+
+    // Render ballot key display
+    // var candidateTemplate = "<tr><th>spoof " + ballot_key + "</th><td>acct"  + "</td><td>"  +"</td></tr>"
+    // candidatesResults2.append(candidateTemplate);
+
+    // $("#ballot_key").html("Your Ballot Key is: " + ballot_key + "Copy this value now.");
+    // var ballot_key = $('#ballot_key');
+    // ballot_key.show();
+
     App.contracts.Election.deployed().then(function(instance) {
-      return instance.vote(candidateId, { from: App.account });
+      // return instance.vote(candidateId, { from: App.account });
+      return instance.vote(candidateId, encrypted_vote, { from: App.account });
+
     }).then(function(result) {
       // Wait for votes to update
       $("#content").hide();
-      $("#loader").show();
+
+      $("#ballot_key").html("Your Ballot Key is: " + App.ballot_key);
+      var myKey = $('#ballot_key');
+      myKey.show();
+
+      // setTimeout(show_ballot_key(), 500);
+      // show_ballot_key();
+      
+      $("#loader").show(); 
+      // $("#ballot_key").html("Your Ballot Key is: " + ballot_key);
+      // // Render candidate Result
+      //   var candidateTemplate = "Your"
+      //   candidatesResults.append(candidateTemplate);
     }).catch(function(err) {
       console.error(err);
     });
@@ -762,10 +965,130 @@ App = {
     });
   }
 
+  // ///////////////////////////////////////////////////// ECC PART ////////////////////////////////////
+  // getRandomInt: function (min, max) {
+  //   var min1 = Math.ceil(min);
+  //   var max1 = Math.floor(max);
+  //   return Math.floor(Math.random() * (max1 - min1) + min1); //The maximum is exclusive and the minimum is inclusive
+  // },
+  
+  // gcd: function(a, b){
+  // 	if (a < b) {
+  //         return gcd(b, a)
+  //     }
+  // 	else if ((a % b) == 0) {
+  //         return b;
+  //     }
+          
+  // 	else {
+  //         return gcd(b, a % b)
+  //     }	
+  // },
+  
+  // gen_key: function(q){
+  // 	var key = getRandomInt(Math.pow(10,0), q);
+  // 	while (gcd(q, key) != 1){
+  //         key = getRandomInt(Math.pow(10,0),q);
+  //         // console.log(key);
+  //     }
+  // 	return key;
+  // },
+  
+  // power: function(a, b, c){
+  //   var x = 1
+  //   var y = a
+  
+  //   while (b > 0){
+  //         if ((b % 2) == 0){
+  //             x = (x * y) % c;
+  //         }	
+  //     var y = (y * y) % c;
+  //     var b = parseInt(b / 2);
+  //     }
+  
+  //   return x % c;
+  // },
+  
+  // encrypt: function(msg, q, h, g){
+  // 	var en_msg = [];
+  
+  // 	var k = gen_key(q); // Private key for sender
+  // 	var s = power(h, k, q);
+  // 	var p = power(g, k, q);
+      
+  //     for(i=0; i<msg.length;i++){
+  //         en_msg = en_msg.concat(msg[i]);
+  //     }
+  
+  // 	// print("g^k used : ", p)
+  // 	// print("g^ak used : ", s)
+  
+  //     for(i=0; i<msg.length;i++){
+  //     	// console.log(en_msg[i]);
+  //         en_msg[i] = s * (en_msg[i].charCodeAt(0));
+  //     }
+  
+  // 	return [en_msg, p];
+  // },
+  
+  // decrypt: function(en_msg, p, key, q){
+  // 	var dr_msg = [];
+  // 	var h = power(p, key, q);
+  
+  //     for(i=0; i<en_msg.length;i++){
+  //     	console.log("DR MSG IS", dr_msg);
+  
+  //         dr_msg = dr_msg.concat(String.fromCharCode(parseInt((en_msg[i]/h) )));
+  //     }
+  
+  
+  // 	return dr_msg;
+  // },
+  
+  // ecc_main: function(msg){
+  //   // var msg = "nephia";
+  //   // print("Original Message :", msg)
+  //   console.log("Original Message :", msg);
+  
+  //   var q = getRandomInt(Math.pow(10,0), Math.pow(10,5));	// very large number
+  // // console.log("hi1", q);
+  //   var g = getRandomInt(2,q);
+  //   // console.log("hi2");
+  
+  //   var key = gen_key(q) // Private key for receiver
+  //   // console.log("hi3");
+  //   var h = power(g, key, q)
+  //   // console.log("hi4");
+  //   // print("g used : ", g)
+  //   console.log("g used : ", g);
+  //   // print("g^a used : ", h)
+  //   console.log("g^a used : ", h);
+  
+  //   var full_en_msg = encrypt(msg, q, h, g);
+  //   var en_msg = full_en_msg[0];
+  //   console.log("en_msg : ", en_msg);
+  //   var p = full_en_msg[1];
+  //   // console.log("p : ", p);
+  //   // console.log("key : ", key);
+  //   // console.log("q : ", q);
+  //   // var dr_msg = decrypt(en_msg, p, key, q);
+  //   // var dmsg = dr_msg.join('');
+
+  //   // console.log("Decrypted Message :", dmsg);
+  //   return en_msg;
+    
+  // },
+  
+  // ///////////////////////////////////////////////////// ECC PART //////////////////////////////////// 
+  
+
 };
 
-$(function() {
-  $(window).load(function() {
-    App.init();
-  });
-});
+// $(function() {
+//   $(window).load(function() {
+//     App.init();
+//   });
+// });
+
+// const ecc = require("./ecc.js");
+App.init();

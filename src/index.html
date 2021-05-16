@@ -86,6 +86,12 @@
             <p class="text-center">Loading...!!</p>
           </div>
 
+          <center>
+          <div class="this" id="ballot_key">
+            <p class="text-center">OMG BALLOT KEY!</p>
+          </div>
+        </center>
+
           <div class="this" id="no_acct">
             <p class="text-center">You are not registered.</p>
           </div>
@@ -153,6 +159,7 @@
 
             <br><br>
             <p id="accountAddress" class="text-center">aaa</p>
+            
           </div>
 
           <br><br><br><br><br>
@@ -166,6 +173,19 @@
               </tr>
             </thead>
             <tbody id="candidatesResults1">
+            </tbody>
+          </table>
+
+          <br><br><br><br><br>
+          Votes new
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">eth wallet</th>
+                <th scope="col">candidate they voted for</th>
+              </tr>
+            </thead>
+            <tbody id="candidatesResults2">
             </tbody>
           </table>
 
@@ -215,6 +235,7 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
+    <script src="js/ecc.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>
