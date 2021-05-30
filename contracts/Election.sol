@@ -1,4 +1,5 @@
 pragma solidity ^0.5.16; // remove '^' to lock the actual solidity version (to decrease security risks)
+pragma experimental ABIEncoderV2;
 
 contract Election {
     // // Store candidate
@@ -45,6 +46,9 @@ contract Election {
     mapping(uint => address) public myVotes; // new vote storage !!!!!!!!!!!!!!!!!!!!!!!!!
     mapping (address => string) public myVotes2; // !!!!!!!!!!!!!!!!!!!!!!!!!
 
+    mapping (uint => address) public allVoteArraysIndex;
+    mapping (address => uint[]) public allVoteArrays;
+
     // Store Candidate
     // Fetch Candidate
     mapping(uint => Candidate) public candidates; // mapping(_KeyType => _ValueType) public mappingName
@@ -53,6 +57,11 @@ contract Election {
         uint public candidatesCount; //used to keep track of how many candidates there are (iterating not possible in Solidity)
 
         uint public allVotesCount; // storing number of all votes !!!!!!!!!!!!!!!!!!!!
+
+        uint public allVoteArraysCounter;
+
+        // array to store all candidate votes
+        uint[] candVotes;
 
     // Election Instances Count
         uint public electionInstancesCount;
@@ -65,6 +74,7 @@ contract Election {
         addCandidate("Nephia Dalisay!");
         addCandidate("Bianca Bueno!");
     }
+
 
     function addCandidate (string memory _name) public {
         candidatesCount ++;
@@ -106,7 +116,8 @@ contract Election {
     //     person_uint = persons2[_addr];
     // }
 
-    function vote(uint _candidateId, string memory _votersvote) public {
+    // function vote(uint _candidateId, string memory _votersvote) public {
+    function vote(uint _candidateId, string memory _votersvote, uint[] memory _votearray) public {
         // require that they haven't voted before
         require(!voters[msg.sender]);
         // require a valid candidate
@@ -115,13 +126,18 @@ contract Election {
         // record that voter has voted
         voters[msg.sender] = true; // msg.sender is x in 'from:x'
 
-        allVotesCount++; //!!!!!!!!!!!!!!!!!!!!!!
-        myVotes[allVotesCount] = msg.sender; // storing vote in mapping !!!!!!!!!!!!!!!!!!!!!
-        myVotes2[msg.sender] = _votersvote;
+        allVotesCount++;
+        myVotes[allVotesCount] = msg.sender; // for easier displaying of votes, each voter that has voted is assigned to an index
+        myVotes2[msg.sender] = _votersvote; // storing vote in mapping 
+
+        allVoteArraysCounter++;
+        allVoteArraysIndex[allVoteArraysCounter] = msg.sender;
+        allVoteArrays[msg.sender] = _votearray; // storing in mapping ETH Wallet => encrypted vote
+
+        //candVotes[_candidateId] = candVotes[_candidateId] + _votersvoteint; // add (using encrypted value) the votes of specific candidate
 
         // update candidate vote count
         candidates[_candidateId].voteCount ++;
-
     }
 
     // function merge(string memory s1, string memory s2) public returns (string _votersvote){

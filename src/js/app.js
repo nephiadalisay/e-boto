@@ -12,6 +12,7 @@ App = {
   role: 0,
   current_addr: '',
   ballot_key,
+  canCount: 0,
 
   init: function() {
     // const ecc = require("./ecc.js");
@@ -81,6 +82,12 @@ App = {
         $("#accountAddress").html("Your Account: " + App.account);
       });
     }
+    
+    // App.contracts.Election.deployed().then(function(ist){
+    //   return candidatesCount;
+    // }).then(function(result){
+    //   App.canCount = result;
+    // });
     
 
   },
@@ -747,7 +754,7 @@ App.contracts.Election.deployed().then(function(instance1) {
     }
     ////////////////////////////////SPECIAL FX PART//////////////////////////////////
 
-    ///////////////////////////////////////////////////// ECC PART ////////////////////////////////////
+  //   ///////////////////////////////////////////////////// ECC PART ////////////////////////////////////
   function getRandomInt (min, max) {
     var min1 = Math.ceil(min);
     var max1 = Math.floor(max);
@@ -755,25 +762,25 @@ App.contracts.Election.deployed().then(function(instance1) {
   }
   
   function gcd(a, b){
-  	if (a < b) {
+      if (a < b) {
           return gcd(b, a)
       }
-  	else if ((a % b) == 0) {
+      else if ((a % b) == 0) {
           return b;
       }
           
-  	else {
+      else {
           return gcd(b, a % b)
       }	
   }
   
   function gen_key(q){
-  	var key = getRandomInt(Math.pow(10,0), q);
-  	while (gcd(q, key) != 1){
+      var key = getRandomInt(Math.pow(10,0), q);
+      while (gcd(q, key) != 1){
           key = getRandomInt(Math.pow(10,0),q);
           // console.log(key);
       }
-  	return key;
+      return key;
   }
   
   function power(a, b, c){
@@ -792,39 +799,39 @@ App.contracts.Election.deployed().then(function(instance1) {
   }
   
   function encrypt(msg, q, h, g){
-  	var en_msg = [];
+      var en_msg = [];
   
-  	var k = gen_key(q); // Private key for sender
-  	var s = power(h, k, q);
-  	var p = power(g, k, q);
+      var k = gen_key(q); // Private key for sender
+      var s = power(h, k, q);
+      var p = power(g, k, q);
       
       for(i=0; i<msg.length;i++){
           en_msg = en_msg.concat(msg[i]);
       }
   
-  	// print("g^k used : ", p)
-  	// print("g^ak used : ", s)
+      // print("g^k used : ", p)
+      // print("g^ak used : ", s)
   
       for(i=0; i<msg.length;i++){
-      	// console.log(en_msg[i]);
+          // console.log(en_msg[i]);
           en_msg[i] = s * (en_msg[i].charCodeAt(0));
       }
   
-  	return [en_msg, p];
+      return [en_msg, p];
   }
   
   function decrypt(en_msg, p, key, q){
-  	var dr_msg = [];
-  	var h = power(p, key, q);
+      var dr_msg = [];
+      var h = power(p, key, q);
   
       for(i=0; i<en_msg.length;i++){
-      	console.log("DR MSG IS", dr_msg);
+          console.log("DR MSG IS", dr_msg);
   
           dr_msg = dr_msg.concat(String.fromCharCode(parseInt((en_msg[i]/h) )));
       }
   
   
-  	return dr_msg;
+      return dr_msg;
   }
   
   function ecc_main(msg){
@@ -860,30 +867,185 @@ App.contracts.Election.deployed().then(function(instance1) {
     return en_msg;
     
   }  
-  ///////////////////////////////////////////////////// ECC PART^ //////////////////////////////////// 
+  // ///////////////////////////////////////////////////// ECC PART^ //////////////////////////////////// 
+
+  ///////////////////////////////////////////////////// ECC PART2 //////////////////////////////////// 
+  function keyGeneration(p,P,n){
+    var min1 = 1;
+    var max1 = n;
+    d = Math.floor(Math.random() * (max1 - min1) + min1);
+
+    Q = d*P;
+
+    return [Q,d];
+  }
+
+  function Encryption(p,P,n,Q,M){
+    var min1 = 1;
+    var max1 = n;
+    k = Math.floor(Math.random() * (max1 - min1) + min1);
+
+    C1 = k*P;
+    C2 = M + k*Q;
+
+    return [C1,C2];
+  }
+
+  function Decryption(p,P,n,d,C1,C2){
+    M = C2 - d*C1;
+
+    return M;
+  }
+
+
+  function ECCEncrypt(p,P,n,Q,vote){ // vote = [v0,v1,v2,v3,...] --> 1 person's votes for x candidates
+
+    var encrypted_vote = []; // [[a1,a2],[b1,b2],[c1,c2],...]
+
+    for(i=0;i<vote.length;i++){ // vote.length = how many candidates
+      encrypt_answer = Encryption(p,P,n,Q,vote[i]);
+      C1 = 6911111111111111111111111111111111111111111111111111111111111111111111111;
+      C2 = 4200000000000000000000000000000000000000000000000000000000000000000000000;
+      // C1 = parseInt(encrypt_answer[0]);
+      // C2 = parseInt(encrypt_answer[1]);
+      // C1 = encrypt_answer[0];
+      // C2 = encrypt_answer[1];
+      // C1 = parseInt(String(encrypt_answer[0]).substring(0,5));
+      // C2 = parseInt(String(encrypt_answer[1]).substring(0,5));
+      // encrypted_vote.push(C1);
+      // encrypted_vote.push(C2);
+      encrypted_vote.push(parseInt(C1));
+      encrypted_vote.push(parseInt(C2));
+    }
+    return encrypted_vote; // e.v. of 1person's votes for x candidates  // [a1,a2,b1,b2,c1,c2]
+
+  }
+
+  function ECCDecrypt1(encrypted_vote_all){ // encrypted_vote = [[[a1,a2],[b1,b2],[c1,c2]], [[a1,a2],[b1,b2],[c1,c2]], [[a1,a2],[b1,b2],[c1,c2]]]
+    
+    // p = (2^255) - 77372353535851937790883648493;
+
+    // voter1 = [[a1,a2],[b1,b2],[c1,c2],...]
+    // voter2 = [[a1,a2],[b1,b2],[c1,c2],...]
+    // voter3 = [[a1,a2],[b1,b2],[c1,c2],...]
+    // sum    = [[a1+a1+a1, a2+a2+a2],[b1+b1+b1, b2+b2+b2], [c1+c1+c1, c2+c2+c2]]
+    //        = [[A1,A2], [B1,B2], [C1,C2]]
+    //        = Decrypt[A1,A2], Decrypt[B1,B2], Decrypt[C1,C2]
+    //        = Result(A), Result(B), Result(C)
+
+    
+    sum1=0;
+    sum2=0;
+    var toDecrypt = [];
+    var finalTally = [];
+
+    for(j = 0; j < encrypted_vote_all[0].length; j++){
+      sum1=0;
+      sum2=0;
+      for (i=0; i<encrypted_vote_all.length; i++){
+        sum1 = sum1 + encrypted_vote_all[i][j][0];
+        sum2 = sum2 + encrypted_vote_all[i][j][1];
+  
+        if(i == encrypted_vote_all.length){
+          i=0;
+          break;
+        }
+      
+      }
+      toDecrypt.push([sum1, sum2]); //[[A1,A2], [B1,B2], [C1,C2]]
+    }
+    console.log(toDecrypt);
+
+    for(n=0;n<toDecrypt.length;n++){
+      x = Decryption(p,P,n,d,toDecrypt[n][0],toDecrypt[n][1]);
+      finalTally.push(x);
+    }
+
+    return finalTally;
+  }  
+
+  function ECCDecrypt(p,P,n,d,voteArray_encrypted){
+    M = [];
+    for(i=0;i<4;i++){
+      if(i==0 || (i%2)==0){
+        M.push(voteArray_encrypted[i+1] - d*voteArray_encrypted[i]);
+      }
+    }
+    return M;
+  }
+  ///////////////////////////////////////////////////// ECC PART2^ //////////////////////////////////// 
 
     var candidateId = $('#candidatesSelect').val(); // getting the vote value
+
+    // initializing our domain parameters
+      var p = (2**255) - 19;
+      //  E : y^2 = x^3 + 486662x^2 + x
+      var P = 9;
+      var n = (2**252) + 27742317777372353535851937790883648493;
+      
+    // Key Generation
+      var keyGen = keyGeneration(p,P,n);
+      var Q = keyGen[0];
+      var d = keyGen[1];
+
+    // Vote Encryption
+      App.canCount =2;
+      var voteArray = new Array(App.canCount); // declare array to store voter's vote for all candidates
+      var canIndex = candidateId - 1; // for correct indexing, for old process
+      // for loop to place the vote values in the array. 
+      // Example (0,1,0,0) is a vote for Cand2, there are 4 candidates
+      
+      for(i=0; i<App.canCount; i++){
+        if(i == canIndex){
+          voteArray[i] = 1;
+        }
+        else{
+          voteArray[i] = 0;
+        }
+      }
+
+      var voteArray_encrypted = ECCEncrypt(p,P,n,Q,voteArray); //voteArray=[0,1,0],,,, will return [a1,a2,b1,b2,c1,c2] --> a1&a2 are ciphertexts of vote for candidate1
+
+    // Ballot Key Generation
+      // var encrypted_vote = (String(voteArray_encrypted[0]).substring(0,5)).concat(String(voteArray_encrypted[1]).substring(0,5)); // gets the encrypted vote of Candidate1 always for ballot key generation only
+      var encrypted_vote = String(voteArray_encrypted[0]).substring(0,10); // gets the encrypted vote of Candidate1 always for ballot key generation only
+      ballot_key = merge(String(App.account).substring(0,10), String(encrypted_vote)).replaceAll('.',''); 
+      App.ballot_key = ballot_key;
+
+
+
+
+
+
+
+
+      // test decryption
+      var decrypted_values = ECCDecrypt(p,P,n,d,voteArray_encrypted);
 
     // candidateId_spoof = parseInt(candidateId) + 56789; // turning vote into larger number so we can encrypt better
 
     // encryption of vote,, this is what should be stored in mapping 'voter_id => encrypted_vote'
-    encrypted_vote = String(ecc_main(String(candidateId))); 
+    encrypted_vote1 = String(ecc_main(String(candidateId))); 
+    // encrypted_vote1 = '59';
+    // voteArray_encrypted = [[12,13],[14,15]];
 
     // merging ETH wallet with encrypted vote,,, this is the ballot key
-    ballot_key = merge(String(App.account).substring(0,10), String(encrypted_vote)).replaceAll(',',''); 
-    App.ballot_key = ballot_key;
+    // ballot_key = merge(String(App.account).substring(0,10), String(encrypted_vote)).replaceAll(',',''); 
+    // App.ballot_key = ballot_key;
 
     // Render ballot key display
     // var candidateTemplate = "<tr><th>spoof " + ballot_key + "</th><td>acct"  + "</td><td>"  +"</td></tr>"
     // candidatesResults2.append(candidateTemplate);
 
-    // $("#ballot_key").html("Your Ballot Key is: " + ballot_key + "Copy this value now.");
-    // var ballot_key = $('#ballot_key');
-    // ballot_key.show();
+    
 
+    // var hi = [[1,2],[3,4],[5,6]];
+    // var hi1 = [1,2,3,4,5]
     App.contracts.Election.deployed().then(function(instance) {
       // return instance.vote(candidateId, { from: App.account });
-      return instance.vote(candidateId, encrypted_vote, { from: App.account });
+      // return instance.vote(candidateId, encrypted_vote, { from: App.account });
+      return instance.vote(candidateId, encrypted_vote1, voteArray_encrypted, { from: App.account });
+
 
     }).then(function(result) {
       // Wait for votes to update
@@ -892,6 +1054,10 @@ App.contracts.Election.deployed().then(function(instance1) {
       $("#ballot_key").html("Your Ballot Key is: " + App.ballot_key);
       var myKey = $('#ballot_key');
       myKey.show();
+
+      $("#nephia").html("Real Vote:"+voteArray+"Encrypted vote:" + voteArray_encrypted +"Decrypted Vote:"+ decrypted_values).innerHTML;
+      var ballot_key = $('#nephia');
+      ballot_key.show();
 
       // setTimeout(show_ballot_key(), 500);
       // show_ballot_key();
