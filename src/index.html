@@ -5,10 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>e-Halal</title>
+    <title>e-Boto</title>
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -18,18 +19,31 @@
     <![endif]-->
   </head>
   <body>
+
     <div class="container" style="width: 650px;">
       <div class="row">
         <div class="col-lg-12">
-          <h1 class="text-center">e-Halal</h1>
+          <h1 style="font-size:50px" class="text-center">e-Halal</h1>
           <hr/>
           <br/>
 
-          <p id="myrole" class="text-center"></p>
-          <p id="myrole2" class="text-center"></p>
-          <p id="test1" class="text-center"></p>
+  <div style="font-size:15px">
+          
+          <p style="text-align:left" id="myAddress" class=""></p>
+          <p style="text-align:left" id="myrole" class=""></p>
+          <p style="text-align:left" id="myrole2" class=""></p>
+          <p style="text-align:left" id="test1" class=""></p>
 
-          <center><button class="this" type="submit" id="startbtn" onclick="App.renderme()">Enter</button></center>
+          <!-- <div class="this" id="role_words1">
+            <p style="text-align:left" class="">Your e-Boto account is a <b>Voter </b>account.</p>
+          </div>
+          <div class="this" id="role_words2">
+            <p style="text-align:left" class="">Your e-Boto account is an <b>Election Authority</b> account.</p>
+          </div> -->
+
+          <p style="text-align:left" id="free_space" class=""></p>
+
+          <center><button class="this btn btn-primary btn-lg" type="submit" id="startbtn" onclick="App.renderme()">Enter</button></center>
 
           <div class="this" id = "start_div">
           <center>
@@ -37,19 +51,38 @@
             
 
             <br>
-            <p class="text-center">I am a/an...</p>
-            <button type="submit" id="voter_btn" onclick="App.reg_voter()">Register as Voter</button>
-            <button type="submit"id="ea_btn" onclick="App.reg_elecauth()">Register as Election Authority</button>
-            <br><br>or<br>
-            <button type="submit" id="voter_btn2" onclick="App.sign_in()">Sign in </button>
+            <!-- <p class="text-center">I am a/an...</p> -->
+            <button type="submit" class ="btn btn-success btn-lg" id="voter_btn" onclick="App.reg_voter()">Register as Voter</button>
+            <button type="submit" class ="btn btn-danger btn-lg" id="ea_btn" onclick="App.reg_elecauth()">Register as Election Authority</button>
+            <br><br>or<br><br>
+            <button type="submit" class ="btn btn-light btn-lg" id="voter_btn2" onclick="App.sign_in()">Sign in </button>
            
           </center>
           </div>
           
           <div class="this" id = "elecauth_div">
-          <center>
-            <button type="button" id="create_elect" onclick="App.custom_election()">Create Election</button>
-          </center>
+            <br>
+            <center>
+              <button type="button" id="create_elect" class ="btn btn-success btn-lg" onclick="App.custom_election()">Create Election</button>
+            </center>
+
+            <!-- Remove this div if real imp -->
+            <div style="text-align:left">
+              <br><br>
+              All Accounts in Database
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Addr</th>
+                    <th scope="col">Role</th>
+                  </tr>
+                </thead>
+                <tbody id="showAllAccounts">
+                </tbody>
+              </table>
+            </div>
+
           </div>
 
           <div class="this" id = "custom_election_div">
@@ -57,18 +90,41 @@
             <p class="text-center">Election created!</p>
             Election ID: <input type="text" id="election_id">
             <br><br>
-            <button type="button" id="create_elect" onclick="App.auth_homepage()">Customize Election</button>
+            <button type="button" class ="btn btn-primary btn-lg" id="create_elect" onclick="App.auth_homepage()">Customize Election</button>
           </center>
           </div>
 
           <div class="this" id = "auth_homepage_div">
           <center>
             <br>
-            <button type="button" id="create_elect" onclick="App.add_can()">Add Candidates</button><br><br>
-            <button type="button" id="create_elect" onclick="App.edit_pxn()">Edit Positions</button><br><br>
-            <button type="button" id="create_elect" onclick="App.render1()">Election Duration</button><br><br>
-            <button type="button" id="create_elect" onclick="App.ed_vote()">Edit Voters</button>
+            <button type="button" id="create_elect" class ="btn btn-primary btn-lg" onclick="App.add_can()">Add Candidates</button><br><br>
+            <button type="button" id="create_elect" class ="btn btn-primary btn-lg" onclick="App.edit_pxn()">Edit Positions</button><br><br>
+            <button type="button" id="create_elect" class ="btn btn-primary btn-lg" onclick="App.render1()">Election Duration</button><br><br>
+            <button type="button" id="create_elect" class ="btn btn-primary btn-lg" onclick="App.ed_vote()">Edit Voters</button>
           </center>
+          </div>
+
+          <div class="this" id="add_can_div">
+            <br>
+            <form onSubmit="App.addCandidate(); return false;" > 
+              Add a Candidate
+              <div class="form-group">
+                <input type="text" id="candidateName" placeholder = "Name">
+              </div>
+              <button type="submit" id="addcanbtn" class="this btn btn-primary btn-lg" >Add Candidate</button>
+            </form> 
+          </div>
+
+          <div class="this" id="ed_vote_div">
+            <br>
+            <form onSubmit="App.edit_voters(); return false;" > 
+              Add a Voter
+              <div class="form-group">
+                <input type="text" id="voter_eth_wallet" placeholder = "ETH Wallet Number"> 
+                <input type="text" id="voter_email" placeholder = "Email Address">
+              </div>
+              <button type="submit" id="ed_vote_btn" class="this btn btn-primary btn-lg" >Add Voter</button>
+            </form>
           </div>
 
           <div class="this" id = "edit_pxn_div">
@@ -100,12 +156,12 @@
             <p class="text-center">This account is already in the voter database.</p>
           </div>
 
-          <div class="this" id="role_words1">
-            <p class="text-center">Your e-Halal account is a <b>Voter Account.</b></p>
+          <!-- <div class="this" id="role_words1">
+            <p class="text-center">Your e-Boto account is a <b>Voter Account.</b></p>
           </div>
           <div class="this" id="role_words2">
-            <p class="text-center">Your e-Halal account is an <b>Election Authority Account.</b></p>
-          </div>
+            <p class="text-center">Your e-Boto account is an <b>Election Authority Account.</b></p>
+          </div> -->
 
           <br><br>
           <center>
@@ -128,14 +184,14 @@
             </div>
           </center> -->
 
-          <div class="this" id="add_can_div">
+          <!-- <div class="this" id="add_can_div">
             <form onSubmit="App.addCandidate(); return false;" > 
               <div class="form-group">
                 <input type="text" id="candidateName">
               </div>
-              <button type="submit" id="addcanbtn" class="this btn btn-primary" >Add Candidate</button>
+              <button type="submit" id="addcanbtn" class="this btn btn-primary btn-lg" >Add Candidate</button>
             </form>
-          </div>
+          </div> -->
 
           <div class="this" id="ed_vote_div">
             <form onSubmit="App.edit_voters(); return false;" > 
@@ -143,11 +199,12 @@
                 <input type="text" id="voter_eth_wallet" placeholder = "ETH Wallet Number"> 
                 <input type="text" id="voter_email" placeholder = "Email Address">
               </div>
-              <button type="submit" id="ed_vote_btn" class="this btn btn-primary" >Add Voter</button>
+              <button type="submit" id="ed_vote_btn" class="this btn btn-primary btn-lg" >Add Voter</button>
             </form>
           </div>
           
           <div id="content" style="display: none;">
+            Election Results
             <table class="table">
               <thead>
                 <tr>
@@ -161,41 +218,72 @@
             </table>
             <hr/>
 
-
+            <br>
             <form id=forvoteronly; onSubmit="App.castVote(); return false;">
               <div class="form-group">
                 <label for="candidatesSelect">Select Candidate</label>
-                <select class="form-control" id="candidatesSelect">
+                <select class="form-control" style="font-size:15px" id="candidatesSelect">
                 </select>
               </div>
-              <button type="submit" class="btn btn-primary">Vote</button>
+              <button type="submit" class="btn btn-primary btn-lg">Vote</button>
               <hr />
             </form>
 
             ...................
 
             <br><br>
-            <p id="accountAddress" class="text-center">aaa</p>
+            <p id="accountAddress" class="text-center"></p>
             <br><br>
-            <p id="candidatesCount" class="text-center">aaa</p>
+            <p id="candidatesCount" class="text-center"></p>
             <br><br>
-            <p id="voteArray" class="text-center">bbb</p>
+            <p id="voteArray" class="text-center"></p>
+            
+          </div>
+
+          <div id="content11" style="display: none;">
+            Election Results
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Votes</th>
+                </tr>
+              </thead>
+              <tbody id="candidatesResults11">
+              </tbody>
+            </table>
+            <hr/>
+
+            <!-- <br>
+            <form id=forvoteronly; onSubmit="App.castVote(); return false;">
+              <div class="form-group">
+                <label for="candidatesSelect11">Select Candidate</label>
+                <select class="form-control" style="font-size:15px" id="candidatesSelect">
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg">Vote</button>
+              <hr />
+            </form> -->
             
           </div>
 
           <br><br><br><br><br>
-          Accounts
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Addr</th>
-                <th scope="col">Role</th>
-              </tr>
-            </thead>
-            <tbody id="candidatesResults1">
-            </tbody>
-          </table>
+
+          <!-- <div>
+            Accounts
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Addr</th>
+                  <th scope="col">Role</th>
+                </tr>
+              </thead>
+              <tbody id="showAllAccounts">
+              </tbody>
+            </table>
+          </div> -->
 
           <br><br><br><br><br>
           Votes new
@@ -249,6 +337,14 @@
       
       </script>
 
+    </div>
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>

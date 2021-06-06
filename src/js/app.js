@@ -75,11 +75,11 @@ App = {
     if(window.ethereum){
       ethereum.enable().then(function(acc){
           App.account = acc[0];
-          // $("#accountAddress").html("Your Account: " + App.account);
+          // $("#accountAddress").html("Your Accountz: " + App.account);
           // var accountAddress = $('#accountAddress');
           // accountAddress.show();
       }).then(function(i){
-        $("#accountAddress").html("Your Account: " + App.account);
+        // $("#accountAddress").html("Your Accountz: " + App.account);
       });
     }
     
@@ -105,8 +105,8 @@ App = {
     if(window.ethereum){
       ethereum.enable().then(function(acc){
           App.account = acc[0];
-          $("#myrole").html("Your Role: " + App.role);
-          $("#accountAddress").html("Your Account: " + App.account);
+          // $("#myrole").html("Your Role: " + App.role);
+          $("#myAddress").html("Your ETH Wallet ID: " + App.account);
           // var accountAddress = $('#accountAddress');
           // accountAddress.show();
       });
@@ -120,7 +120,7 @@ App.contracts.Election.deployed().then(function(instance) {
   electionInstance = instance;
   return electionInstance.personsCount();
 }).then(function(personsCount) {
-  var candidatesResults = $("#candidatesResults1");
+  var candidatesResults = $("#showAllAccounts");
   candidatesResults.empty();
 
   var candidatesSelect = $('#candidatesSelect1');
@@ -140,6 +140,7 @@ App.contracts.Election.deployed().then(function(instance) {
     });
   }
 });
+
 ///////////////////////////
 ////////////////////////////
 App.contracts.Election.deployed().then(function(instance1) {
@@ -185,6 +186,42 @@ App.contracts.Election.deployed().then(function(instance1) {
     
   },
 
+  display_results:function(){
+    // Load contract data
+    App.contracts.Election.deployed().then(function(instance) {
+      electionInstance = instance;
+      return electionInstance.candidatesCount();
+    }).then(function(candidatesCount) {
+      var candidatesResults = $("#candidatesResults");
+      candidatesResults.empty();
+
+      // var candidatesSelect = $('#candidatesSelect');
+      // candidatesSelect.empty();
+
+      // For displaying candidates
+      for (var i = 1; i <= candidatesCount; i++) {
+        electionInstance.candidates(i).then(function(candidate) {
+          var id = candidate[0];
+          var name = candidate[1];
+          var voteCount = candidate[2];
+
+          // if (App.role == 0 || App.role == 2){
+          //   var candidatesSelect = $("#forvoteronly");
+          //   candidatesSelect.hide();
+          // }
+          // Render candidate Result
+          var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+          candidatesResults.append(candidateTemplate);
+
+          // Render candidate ballot option
+          // var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
+          // candidatesSelect.append(candidateOption);
+        });
+      }
+      // return electionInstance.voters(App.account);
+    });
+  },
+
 
   reg_elecauth: function(){
     var divs = document.getElementsByClassName('this');
@@ -196,7 +233,7 @@ App.contracts.Election.deployed().then(function(instance1) {
     // if(window.ethereum){
     //   ethereum.enable().then(function(acc){
     //       App.account = acc[0];
-    //       // $("#accountAddress").html("Your Account: " + App.account);
+    //       // $("#accountAddress").html("Your Accountz: " + App.account);
     //       // var accountAddress = $('#accountAddress');
     //       // accountAddress.show();
     //   });
@@ -237,13 +274,20 @@ App.contracts.Election.deployed().then(function(instance1) {
           return instance2.register(App.account, App.role, { from: App.account });
         }).then(function(result){
           var elecauth_div = $("#elecauth_div");
-          $("#myrole").html("Your Role: " + App.role);
+          var displayRole = '';
+          if(App.role==1){
+            displayRole = "Voter";
+          }
+          else{
+            displayRole = "Election Authority";
+          }
+          $("#myrole").html("Your Role: " + displayRole);
           elecauth_div.show();
         })
       }
       else{
         App.isRegistered = true;
-        $("#myrole").html("Your Account: " + App.account);
+        // $("#myrole").html("Your Accountz: " + App.account);
         var already_reg = $("#already_reg");
         already_reg.show();
         // var voter_btn2 = $("#voter_btn2");
@@ -301,10 +345,18 @@ App.contracts.Election.deployed().then(function(instance1) {
       }
       else{
         App.isRegistered = true;
-        $("#myrole").html("Your Account: " + acct_str);
+        var displayRole = '';
+        // if(App.role==1){
+        //   displayRole = "Voter";
+        // }
+        // else{
+        //   displayRole = "Election Authority";
+        // }
+        // $("#myrole").html("Your Role: " + displayRole);
         var already_reg = $("#already_reg");
         already_reg.show();
-
+        // var acct_type = $("#role_words1");
+        // acct_type.show();
         
       }
       // else{ // if in database
@@ -321,7 +373,7 @@ App.contracts.Election.deployed().then(function(instance1) {
       //     }
       //     else{
       //       App.isRegistered = true;
-      //       $("#myrole").html("Your Account: " + App.account);
+      //       $("#myrole").html("Your Accountz: " + App.account);
       //       var already_reg = $("#already_reg");
       //       already_reg.show();
       //     }
@@ -351,22 +403,93 @@ App.contracts.Election.deployed().then(function(instance1) {
       // $("#myrole2").html("Your !!!Role: " + instance.persons2(result));
       App.role = result;
       if(App.role == 1){
-        var role_words1 = $("#role_words1");
-        role_words1.show();
+        if(App.role==1){
+          displayRole = "Voter";
+        }
+        else{
+          displayRole = "Election Authority";
+        }
+        $("#myrole").html("Your Role: " + displayRole);
+        // var role_words1 = $("#role_words1");
+        // role_words1.show();
         App.render();
       }
       else if (App.role == 2) {
         var elecauth_div = $("#elecauth_div");
-        $("#myrole").html("Your Role: " + App.role);
-        var role_words2 = $("#role_words2");
-        role_words2.show();
+        // $("#myrole").html("Your Role: " + App.role);
+        var displayRole = '';
+        if(App.role==1){
+          displayRole = "Voter";
+        }
+        else{
+          displayRole = "Election Authority";
+        }
+        $("#myrole").html("Your Role: " + displayRole);
+        // var role_words2 = $("#role_words2");
+        // role_words2.show();
+
+        ////////////////////////
+        ////////////////////////
+        // $("#freespace").html("hello there");
         elecauth_div.show();
+        App.renderagain(); // this is causing errors huhuu
+        // App.display_results();
+        
+        
+        
+
+        //////////!!!!!!!!!!!!!!!!~~~~~~~~~~~~
+        // App.contracts.Election.deployed().then(function(instance) {
+        //   electionInstance = instance;
+        //   return electionInstance.candidatesCount();
+        // }).then(function(candidatesCount) {
+        //   var candidatesResults = $("#candidatesResults");
+        //   candidatesResults.empty();
+    
+        //   var candidatesSelect = $('#candidatesSelect');
+        //   candidatesSelect.empty();
+    
+        //   // For displaying candidates
+        //   for (var i = 1; i <= candidatesCount; i++) {
+        //     electionInstance.candidates(i).then(function(candidate) {
+        //       var id = candidate[0];
+        //       var name = candidate[1];
+        //       var voteCount = candidate[2];
+    
+        //       // if (App.role == 0 || App.role == 2){
+        //       //   var candidatesSelect = $("#forvoteronly");
+        //       //   candidatesSelect.hide();
+        //       // }
+        //       // Render candidate Result
+        //       var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+        //       candidatesResults.append(candidateTemplate);
+    
+        //       // Render candidate ballot option
+        //       var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
+        //       candidatesSelect.append(candidateOption);
+        //     });
+        //   }
+        //   return electionInstance.voters(App.account);
+        // }).then(function(hasVoted) {
+        //   // Do not allow a user to vote
+        //   if(hasVoted||App.role==0||App.role==2) {
+        //     $('form').hide();
+        //     if(hasVoted)
+        //       $("#free_space").html("You have already cast your vote.");
+        //   }
+        //   loader.hide();
+        //   content.show();
+        // }).catch(function(error) {
+        //   console.warn(error);
+        // });
+        ///////////////!!!!!!!!!~~~~~~~~~~~~~~~
+        
       }
       else{
         App.contracts.Election.deployed().then(function(instance){
           return instance.persons2(App.account);
         }).then(function(result){
-          $("#myrole2").html("Your !!!Role: " + result);
+          // $("#myrole2").html("Your !!!Role: " + result);
         })
 
         var no_acct = $("#no_acct");
@@ -459,14 +582,14 @@ App.contracts.Election.deployed().then(function(instance1) {
       }
       else{
         //////////////        
-        // $("#myrole").html("Your Account: " + App.account);
+        // $("#myrole").html("Your Accountz: " + App.account);
 
         // THIS ONE SHOWS THAT ACC IS ALREADY IN DB WITH PROPER ROLE!!!
-        App.contracts.Election.deployed().then(function(i){
-          return i.persons2(voter_eth_wallet);
-        }).then(function(role){
-          $("#myrole2").html("MY ROLE HOY!: " + role);
-        })
+        // App.contracts.Election.deployed().then(function(i){
+        //   return i.persons2(voter_eth_wallet);
+        // }).then(function(role){
+        //   $("#myrole2").html("MY ROLE: " + role);
+        // })
 
 
         var already_voter = $("#already_voter");
@@ -527,7 +650,7 @@ App.contracts.Election.deployed().then(function(instance1) {
     // if(window.ethereum){
     //   ethereum.enable().then(function(acc){
     //       App.account = acc[0];
-    //       $("#accountAddress").html("Your Account: " + App.account);
+    //       $("#accountAddress").html("Your Accountz: " + App.account);
     //   });
     // }
     // loader.hide();
@@ -611,19 +734,19 @@ App.contracts.Election.deployed().then(function(instance1) {
     }
   },
 
-  deleteelement: function(){
-    var divs = document.getElementsByClassName('this');
-    for(var i = 0; i < divs.length; i++) {
-      divs[i].style.display = "none";
-    }
+  // deleteelement: function(){
+  //   var divs = document.getElementsByClassName('this');
+  //   for(var i = 0; i < divs.length; i++) {
+  //     divs[i].style.display = "none";
+  //   }
 
-    var add_can_div = $("#add_can_div");
-    var addcanbtn = $('#addcanbtn')
+  //   var add_can_div = $("#add_can_div");
+  //   var addcanbtn = $('#addcanbtn')
     
-    add_can_div.show();
-    addcanbtn.show();
+  //   add_can_div.show();
+  //   addcanbtn.show();
 
-  },
+  // },
  
   rendernephia: function() {
     var loader = $("#loader");
@@ -649,7 +772,19 @@ App.contracts.Election.deployed().then(function(instance1) {
   },
 
   render: function() {
-    $("#myrole").html("Your Role: " + App.role);
+    var displayRole = '';
+    if(App.role==1){
+      displayRole = "Voter";
+      var role_words1 = $("#role_words1");
+      role_words1.show();
+    }
+    else{
+      displayRole = "Election Authority";
+      var role_words1 = $("#role_words2");
+      role_words1.show();
+    }
+    // $("#myrole").html("Your Role: " + displayRole);
+    
     // var role_words1 = $("#role_words1");
     // role_words1.show();
     
@@ -672,13 +807,13 @@ App.contracts.Election.deployed().then(function(instance1) {
     // web3.eth.getCoinbase(function(err, account) {
     //   if (err === null) {
     //     App.account = account;
-    //     $("#accountAddress").html("Your Account: " + account);
+    //     $("#accountAddress").html("Your Accountz: " + account);
     //   }
     // });
     if(window.ethereum){
       ethereum.enable().then(function(acc){
           App.account = str(acc[0]);
-          $("#accountAddress").html("Your Account: " + App.account);
+          $("#accountAddress").html("Your ETH Wallet ID: " + App.account);
       });
     }
     // loader.hide();
@@ -720,11 +855,48 @@ App.contracts.Election.deployed().then(function(instance1) {
       // Do not allow a user to vote
       if(hasVoted||App.role==0||App.role==2) {
         $('form').hide();
+        if(hasVoted)
+          $("#free_space").html("You have already cast your vote.");
       }
       loader.hide();
       content.show();
     }).catch(function(error) {
       console.warn(error);
+    });
+
+  },
+
+  renderagain: function() {
+ 
+    var electionInstance;
+    var loader = $("#loader");
+    var content = $("#content11");
+    var start = $("#start");
+
+    App.contracts.Election.deployed().then(function(instance) {
+      electionInstance = instance;
+      return electionInstance.candidatesCount();
+    }).then(function(candidatesCount) {
+      var candidatesResults = $("#candidatesResults11");
+      candidatesResults.empty();
+
+      // For displaying candidates
+      for (var i = 1; i <= candidatesCount; i++) {
+        electionInstance.candidates(i).then(function(candidate) {
+          var id = candidate[0];
+          var name = candidate[1];
+          var voteCount = candidate[2];
+
+          // Render candidate Result
+          var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+          candidatesResults.append(candidateTemplate);
+
+        });
+      }
+      return electionInstance.voters(App.account);
+    }).then(function(hasVoted) {
+      loader.hide();
+      content.show();
     });
 
   },
@@ -904,8 +1076,8 @@ App.contracts.Election.deployed().then(function(instance1) {
 
     for(i=0;i<vote.length;i++){ // vote.length = how many candidates
       encrypt_answer = Encryption(p,P,n,Q,vote[i]);
-      C1 = 6911111111111111111111111111111111111111111111111111111111111111111111111;
-      C2 = 4200000000000000000000000000000000000000000000000000000000000000000000000;
+      // C1 = 6911111111111111111111111111111111111111111111111111111111111111111111111;
+      // C2 = 4200000000000000000000000000000000000000000000000000000000000000000000000;
       // C1 = parseInt(encrypt_answer[0]);
       // C2 = parseInt(encrypt_answer[1]);
       // C1 = encrypt_answer[0];
@@ -1062,7 +1234,8 @@ App.contracts.Election.deployed().then(function(instance1) {
       // setTimeout(show_ballot_key(), 500);
       // show_ballot_key();
       
-      $("#loader").show(); 
+      // $("#loader").show(); 
+
       // $("#ballot_key").html("Your Ballot Key is: " + ballot_key);
       // // Render candidate Result
       //   var candidateTemplate = "Your"
